@@ -7,16 +7,16 @@ contract Adder{
     
     address public resultAddress;
 
-    constructor(address resultAddress_){
-        resultAddress = resultAddress_;
+    constructor(address _resultAddress){
+        resultAddress = _resultAddress;
     }
 
-    function addition(uint256 num1_, uint256 num2_) external {
-        uint256 result = num1_ + num2_;
+    function addition(uint256 _num1, uint256 _num2) external {
+        uint256 result = _num1 + _num2;
         IResult(resultAddress).setResultado(result);
     }
 
-    function setFee(uint256 newFee_) external  {
-        IResult(resultAddress).setFee(newFee_);
+    function setFee(uint256 _newFee) external  {
+        IResult(resultAddress).setFee(_newFee);
     }
 }

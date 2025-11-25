@@ -3,9 +3,9 @@ pragma solidity 0.8.24;
 
 interface IResult{
 
-    function setResultado(uint256 num_) external;
+    function setResultado(uint256 _num) external;
 
-    function setFee(uint256 newFee_) external;
+    function setFee(uint256 _newFee) external;
     
-    function setAdmin(address newAdmin_) external;
+    function setAdmin(address _newAdmin) external;
 }

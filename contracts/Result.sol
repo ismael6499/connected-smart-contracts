@@ -11,20 +11,20 @@ contract Result{
         _;
     }
 
-    constructor(address admin_){
-        admin = admin_;
+    constructor(address _admin){
+        admin = _admin;
         fee = 5;
     }
 
-    function setResultado (uint256 num_) external{
-        result = num_;
+    function setResultado (uint256 _num) external{
+        result = _num;
     }
 
-    function setFee(uint256 newFee_) external onlyAdmin {
-        fee = newFee_;
+    function setFee(uint256 _newFee) external onlyAdmin {
+        fee = _newFee;
     }
     
-    function setAdmin(address newAdmin_) external onlyAdmin {
-        admin = newAdmin_;
+    function setAdmin(address _newAdmin) external onlyAdmin {
+        admin = _newAdmin;
     }
 }
