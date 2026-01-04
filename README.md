@@ -1,37 +1,52 @@
-# 🔗 Connected Smart Contracts: Modular Architecture & Security Patterns
+# 🧩 Modular Contract Architecture: Logic & Storage Separation
 
-A reference implementation of composable smart contract architecture, focusing on the separation of **Logic** and **Storage** layers while enforcing secure cross-contract authentication.
+![Solidity](https://img.shields.io/badge/Solidity-0.8.24-363636?style=flat-square&logo=solidity)
+![Pattern](https://img.shields.io/badge/Pattern-Separation_of_Concerns-green?style=flat-square)
+![License](https://img.shields.io/badge/License-LGPL_3.0-blue?style=flat-square)
 
-## 🚀 Engineering Context
+A reference implementation of **composable smart contract architecture**, focusing on the strict decoupling of Business Logic from Persistence Layers.
 
-As a **Java Software Engineer**, building decoupled systems using Interfaces and Dependency Injection is standard practice to ensure maintainability. In **Solidity**, this concept translates to **Composability**, but introduces unique security challenges regarding identity propagation.
+This project addresses the immutability constraints of the EVM by implementing a **Hub-and-Spoke** model. By isolating state (`Result.sol`) from execution (`Adder.sol`), the system allows for logic upgrades without state migration, serving as a foundational primitive for Proxy patterns and Diamond Standards (EIP-2535).
 
-This project applies **Modular Architecture** principles to the EVM, demonstrating how to decouple Business Logic (`Adder`) from Persistence (`Result`) using strictly defined ABIs, while navigating the security nuances of call chains.
+## 🏗 Architecture & Design Decisions
 
-## 💡 Project Overview
+### 1. Separation of Concerns (SoC)
+- **Decoupled State Management:**
+  - **Logic Layer (`Adder`):** Stateless controller responsible for arithmetic execution and input validation.
+  - **Persistence Layer (`Result`):** Pure storage contract responsible for holding state.
+  - **Benefit:** This separation reduces the risk of storage collision and simplifies unit testing by allowing logic components to be tested in isolation with mocked storage.
 
-The system architecture implements a separation of concerns pattern:
+### 2. Inter-Contract Security (Zero Trust)
+- **Authentication via `msg.sender`:**
+  - The architecture explicitly rejects `tx.origin` for authorization to mitigate **Phishing vulnerabilities** (CWE-115).
+  - **Caller Verification:** The Storage contract implements a strict allowlist mechanism, only accepting state-changing calls (`setResultado`) from the authorized Logic contract address (`msg.sender`), effectively creating a permissioned call chain.
 
-1.  **Persistence Layer (`Result.sol`):** Acts as the database, holding state and permission logic.
-2.  **Logic Layer (`Adder.sol`):** Acts as the controller, executing arithmetic logic and interacting with the persistence layer.
-3.  **Abstraction Layer (`IResult.sol`):** Defines the Interface (ABI), enabling loose coupling between components.
+### 3. Interface-Driven Design
+- **Dependency Inversion:** The Logic contract interacts with Storage purely through the `IResult` interface (ABI), ensuring that the implementation details of the storage layer remain abstract. This adheres to the **Dependency Inversion Principle** (SOLID), facilitating hot-swapping of storage implementations if necessary.
 
-### 🔍 Key Technical Features:
+## 🛠 Tech Stack
 
-* **Security & Phishing Mitigation (`msg.sender` vs `tx.origin`):**
-    * **Threat Model:** While `tx.origin` is convenient for authorizing the original transaction signer across multiple calls, it introduces a critical **Phishing Vulnerability** (contracts can be tricked into acting on behalf of a user via a malicious intermediary).
-    * **Architecture Decision:** I implemented a **Zero Trust** security model relying strictly on `msg.sender`. The Storage contract explicitly authorizes the Logic contract's address, ensuring that access is granted based on *immediate caller identity*, effectively neutralizing phishing vectors.
+* **Core:** Solidity `^0.8.24`
+* **Architecture:** Modular (Logic/Storage Split)
+* **Security:** Role-Based Access Control (RBAC)
 
-* **Interface-Based Interaction:**
-    * Utilization of `IResult(address)` to decouple implementation from definition. The `Adder` contract interacts with `Result` purely through its interface. This pattern is the precursor to upgradeable proxy patterns, allowing logic to change without altering the interface or storage structure.
+## 📝 Contract Interface
 
-## 🛠️ Stack & Tools
+The logic layer interacts with persistence via strict ABI definitions:
 
-* **Language:** Solidity `^0.8.24`.
-* **Architecture:** Modular (Logic/Storage Separation).
-* **Security:** Access Control, Phishing Prevention (CWE-115 Mitigation).
-* **License:** LGPL-3.0-only.
+```solidity
+// Interface abstraction for the storage layer
+interface IResult {
+    function setResultado(uint256 _num) external;
+}
+
+// Interaction in the Logic Layer
+function addition(uint256 _num1, uint256 _num2) external {
+    uint256 result = _num1 + _num2;
+    // External call via interface
+    IResult(resultAddress).setResultado(result);
+}
+```
 
 ---
-
-*This project demonstrates how to maintain system modularity without compromising the security of the call stack.*
+*Reference implementation for decoupled EVM system design.*
