@@ -1,25 +1,30 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity 0.8.24;
 
-import "./interfaces/IResult.sol";
-
-/// @title Adder Logic
+/// @title Result Storage
 /// @author Agustin Acosta
-/// @notice Performs addition and updates the Result contract
-contract Adder {
+/// @notice Persistence layer responsible for holding state
+contract Result {
     
-    error InvalidAddress();
+    // Custom Error para ahorrar gas (Senior approach)
+    error NotAuthorizedLogic();
 
-    address public resultAddress;
+    uint256 public resultado;
+    address public immutable logicContract;
 
-    constructor(address _resultAddress) {
-        if (_resultAddress == address(0)) revert InvalidAddress();
-        resultAddress = _resultAddress;
+    /// @notice Sets the immutable logic contract address allowed to write state
+    /// @param _logicContract The address of the Adder contract
+    constructor(address _logicContract) {
+        logicContract = _logicContract;
     }
 
-    function addition(uint256 _num1, uint256 _num2) external {
-        uint256 result = _num1 + _num2;
-        // Interaction with external contract
-        IResult(resultAddress).setResultado(result);
+    /// @notice Updates the state. Protected by strict access control.
+    /// @param _num The new result to store
+    function setResultado(uint256 _num) external {
+        // Zero Trust Security: Only the specific logic contract can write here
+        if (msg.sender != logicContract) {
+            revert NotAuthorizedLogic();
+        }
+        resultado = _num;
     }
 }
